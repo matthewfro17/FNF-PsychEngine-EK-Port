@@ -219,14 +219,29 @@ class StrumNote extends FlxSprite
 			colorSwap.saturation = ClientPrefs.arrowHSV[colornum][1] / 100;
 			colorSwap.brightness = ClientPrefs.arrowHSV[colornum][2] / 100;
 
-			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
+			/*if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
 				updateConfirmOffset();
-			}
+			}*/
 		}
+
+		if (!PlayState.isPixelStage) //apparently using frame h/w fixes mania switch offsets??????
+		{
+			var scaleToUse = Note.p1NoteScale;
+			if (player == 0)
+				scaleToUse = Note.p2NoteScale;
+	
+			updateHitbox();
+			offset.x = frameWidth / 2;
+			offset.y = frameHeight / 2;
+	
+			offset.x -= (56 / 0.7) * (scaleToUse);
+			offset.y -= (56 / 0.7) * (scaleToUse);
+		}
+
 	}
 
 	function updateConfirmOffset() { //TO DO: Find a calc to make the offset work fine on other angles
-		centerOffsets();
+		/*centerOffsets();
 		var yoffset:Float = 13;
 		var xoffset:Float = 13;
 
@@ -241,7 +256,9 @@ class StrumNote extends FlxSprite
 		xoffset = (xoffset * 0.7) / (scaleToCheck); //calculates offset based on notescale 
 		yoffset = (yoffset * 0.7) / (scaleToCheck);
 		offset.x -= xoffset;
-		offset.y -= yoffset;
+		offset.y -= yoffset;*/
+
+		
 	}
 	public function moveKeyPositions(spr:FlxSprite, newMania:Int, playe:Int):Void 
 	{

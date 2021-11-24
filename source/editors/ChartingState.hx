@@ -1486,7 +1486,7 @@ class ChartingState extends MusicBeatState
 	}
 	function reloadGridLayer() {
 		gridLayer.clear();
-		gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE + GRID_SIZE * Note.keyAmmo[_song.mania] * 2, Std.int(GRID_SIZE * 32 * curZoom));
+		gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, Std.int(GRID_SIZE + (GRID_SIZE * Note.keyAmmo[_song.mania] * 2)), Std.int(GRID_SIZE * 32 * zoomList[curZoom])); //im a fucking dummass
 		gridLayer.add(gridBG);
 
 		#if desktop
@@ -1495,7 +1495,7 @@ class ChartingState extends MusicBeatState
 		}
 		#end
 
-		var gridBlack:FlxSprite = new FlxSprite(0, gridBG.height / 2).makeGraphic(Std.int(GRID_SIZE + GRID_SIZE * Note.keyAmmo[_song.mania] * 2), Std.int(gridBG.height / 2), FlxColor.BLACK);
+		var gridBlack:FlxSprite = new FlxSprite(0, gridBG.height / 2).makeGraphic(Std.int(GRID_SIZE + (GRID_SIZE * Note.keyAmmo[_song.mania] * 2)), Std.int(gridBG.height / 2), FlxColor.BLACK);
 		gridBlack.alpha = 0.4;
 		gridLayer.add(gridBlack);
 

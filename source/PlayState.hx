@@ -124,6 +124,13 @@ class PlayState extends MusicBeatState
 
 	public static var maniaToChange:Int;
 
+	public static var curP1NoteMania:Int = 0; //so i tried using a mapping system, but it sometimes decided to fuck up the scales, so il try this system again
+	public static var curP2NoteMania:Int = 0;
+	public static var prevP1NoteMania:Int = 0; 
+	public static var prevP2NoteMania:Int = 0;
+	public static var lastP1mChange:Float = 0; 
+	public static var lastP2mChange:Float = 0;
+
 	public static var sDir:Array<Dynamic> = [
 		['LEFT', 'DOWN', 'UP', 'RIGHT'],
 		['LEFT', 'UP', 'RIGHT', 'LEFT', 'DOWN', 'RIGHT'],
@@ -304,6 +311,16 @@ class PlayState extends MusicBeatState
 
 		mania = SONG.mania;
 		maniaToChange = mania;
+
+		curP1NoteMania = mania;
+		curP2NoteMania = mania;
+		prevP1NoteMania = mania;
+		prevP2NoteMania = mania;
+		lastP1mChange = 0;
+		lastP2mChange = 0;
+
+		Note.P1MSwitchMap = [[mania, 0]];
+		Note.P2MSwitchMap = [[mania, 0]];
 
 		#if desktop
 		storyDifficultyText = '' + CoolUtil.difficultyStuff[storyDifficulty][0];
@@ -1449,6 +1466,7 @@ class PlayState extends MusicBeatState
 	}
 
 	var keysHeld = [false,false,false,false,false,false,false,false,false];
+	var sustainsHeld = [false,false,false,false,false,false,false,false,false]; //stop keys being jammed with mania switches
 
 	/////////////////////////////////////////////////////////// input code - fuck controls.hx
 	private function releaseInput(evt:KeyboardEvent):Void
@@ -1480,6 +1498,7 @@ class PlayState extends MusicBeatState
 				return;
 
 			keysHeld[data] = false;
+			sustainsHeld[data] = false;
 	
 	}
 	private function handleInput(evt:KeyboardEvent):Void 
@@ -1515,6 +1534,7 @@ class PlayState extends MusicBeatState
 				return;
 
 		keysHeld[data] = true;
+		sustainsHeld[data] = true;
 		if (ClientPrefs.ekInput)
 			ekInput(data);
 		else
@@ -1736,6 +1756,21 @@ class PlayState extends MusicBeatState
 					if(songNotes[1] < 0) {
 						eventNotes.push([songNotes[0], songNotes[1], songNotes[2], songNotes[3], songNotes[4]]);
 						eventPushed(songNotes);
+						if (songNotes[2] == "Set P1 Mania" && songNotes[2] != null)
+						{
+							/*prevP1NoteMania = curP1NoteMania;
+							curP1NoteMania = Std.parseInt(eventData[3]); //im watching you, you better not steal this fucking code
+							lastP1mChange = swagNote.strumTime;*/
+							Note.P1MSwitchMap.push([Std.parseInt(songNotes[3]), songNotes[0]]);
+						}
+							
+						else if (songNotes[2] == "Set P2 Mania" && songNotes[2] != null)
+						{
+							/*prevP2NoteMania = curP2NoteMania;
+							curP2NoteMania = Std.parseInt(eventData[3]);
+							lastP2mChange = swagNote.strumTime;*/
+							Note.P2MSwitchMap.push([Std.parseInt(songNotes[3]), songNotes[0]]);
+						}
 					}
 				}
 			}
@@ -1762,7 +1797,7 @@ class PlayState extends MusicBeatState
 					else
 						oldNote = null;
 
-					var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote);
+					var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, false, gottaHitNote);
 					swagNote.mustPress = gottaHitNote;
 					swagNote.sustainLength = songNotes[2];
 					swagNote.noteType = songNotes[3];
@@ -1780,7 +1815,7 @@ class PlayState extends MusicBeatState
 						{
 							oldNote = unspawnNotes[Std.int(unspawnNotes.length - 1)];
 
-							var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet / FlxMath.roundDecimal(SONG.speed, 2)), daNoteData, oldNote, true);
+							var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet / FlxMath.roundDecimal(SONG.speed, 2)), daNoteData, oldNote, true, false, gottaHitNote);
 							sustainNote.mustPress = gottaHitNote;
 							sustainNote.noteType = swagNote.noteType;
 							sustainNote.scrollFactor.set();
@@ -1805,6 +1840,22 @@ class PlayState extends MusicBeatState
 				} else { //Event Notes
 					eventNotes.push([songNotes[0], songNotes[1], songNotes[2], songNotes[3], songNotes[4]]);
 					eventPushed(songNotes);
+
+					if (songNotes[2] == "Set P1 Mania" && songNotes[2] != null)
+					{
+						/*prevP1NoteMania = curP1NoteMania;
+						curP1NoteMania = Std.parseInt(eventData[3]); //im watching you, you better not steal this fucking code
+						lastP1mChange = swagNote.strumTime;*/
+						Note.P1MSwitchMap.push([Std.parseInt(songNotes[3]), songNotes[0]]);
+					}
+						
+					else if (songNotes[2] == "Set P2 Mania" && songNotes[2] != null)
+					{
+						/*prevP2NoteMania = curP2NoteMania;
+						curP2NoteMania = Std.parseInt(eventData[3]);
+						lastP2mChange = swagNote.strumTime;*/
+						Note.P2MSwitchMap.push([Std.parseInt(songNotes[3]), songNotes[0]]);
+					}
 				}
 			}
 			daBeats += 1;
@@ -3445,7 +3496,7 @@ class PlayState extends MusicBeatState
 			notes.forEachAlive(function(daNote:Note)
 			{
 				// hold note functions
-				if (daNote.isSustainNote && keysHeld[daNote.noteData] && daNote.canBeHit 
+				if (daNote.isSustainNote && sustainsHeld[daNote.noteData] && daNote.canBeHit 
 				&& daNote.mustPress && !daNote.tooLate && !daNote.wasGoodHit) {
 					goodNoteHit(daNote);
 				}
@@ -4181,10 +4232,12 @@ class PlayState extends MusicBeatState
 					spr.setGraphicSize(Std.int(spr.defaultWidth * PlayState.daPixelZoom * scaleToCheck));
 				else 
 					spr.setGraphicSize(Std.int(spr.defaultWidth * scaleToCheck));
-				spr.centerOffsets();
+				//spr.centerOffsets();
 
 				spr.moveKeyPositions(spr, newMania, strumnum);
 			});	
+
+			keysHeld = [false,false,false,false,false,false,false,false,false];
 		}
 	}
 }

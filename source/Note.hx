@@ -97,6 +97,11 @@ class Note extends FlxSprite
 	];
 	public static var keyAmmo:Array<Int> = [4, 6, 9, 5, 7, 8, 1, 2, 3];
 	public static var ammoToMania:Array<Int> = [0, 6, 7, 8, 0, 3, 1, 4, 5, 2];
+	public var curMania:Int = 0;
+	public var scaleToUse:Float = 1;
+
+	public static var P1MSwitchMap:Array<Dynamic> = [];
+	public static var P2MSwitchMap:Array<Dynamic> = [];
 
 	private function set_texture(value:String):String {
 		if(texture != value) {
@@ -139,7 +144,7 @@ class Note extends FlxSprite
 		return value;
 	}
 
-	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false)
+	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false, ?inEditor:Bool = false, ?_mustPress:Bool = false)
 	{
 		super();
 
@@ -170,6 +175,41 @@ class Note extends FlxSprite
 		y -= 2000;
 		this.strumTime = strumTime;
 		if(!inEditor) this.strumTime += ClientPrefs.noteOffset;
+
+		if (!_mustPress)
+		{
+			/*if (strumTime >= PlayState.lastP2mChange)
+				curMania = PlayState.curP2NoteMania;
+			else
+				curMania = PlayState.prevP2NoteMania;*/
+
+			var highestStrumIdx:Int = 0;
+			for (i in 0...P2MSwitchMap.length)
+			{
+				if (P2MSwitchMap[i][1] < this.strumTime)
+					highestStrumIdx = i;
+			}
+			curMania = P2MSwitchMap[highestStrumIdx][0];
+		}
+		else
+		{
+			/*if (strumTime >= PlayState.lastP1mChange)
+				curMania = PlayState.curP1NoteMania;
+			else
+				curMania = PlayState.prevP1NoteMania;*/
+
+			var highestStrumIdx:Int = 0;
+			for (i in 0...P1MSwitchMap.length)
+			{
+				if (P1MSwitchMap[i][1] < this.strumTime)
+					highestStrumIdx = i;
+			}
+			curMania = P1MSwitchMap[highestStrumIdx][0];
+		}
+
+		scaleToUse = noteScales[curMania];
+		if (PlayState.isPixelStage)
+			scaleToUse = pixelNoteScales[curMania];
 
 		this.noteData = noteData;
 
@@ -211,7 +251,7 @@ class Note extends FlxSprite
 
 				prevNote.animation.play(frameN[mania][prevNote.noteData % keyAmmo[mania]] + "hold");
 
-				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05 * PlayState.SONG.speed * (0.7 / noteScale);
+				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05 * PlayState.SONG.speed * (0.7 / scaleToUse);
 				if(PlayState.isPixelStage) {
 					prevNote.scale.y *= 1.19;
 				}
@@ -267,7 +307,7 @@ class Note extends FlxSprite
 			p1NoteScale = Note.pixelnoteScale;
 			p2NoteScale = Note.pixelnoteScale;
 			defaultWidth = width;
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelnoteScale));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * scaleToUse));
 			loadPixelNoteAnims();
 			antialiasing = false;
 		} else {
@@ -297,7 +337,7 @@ class Note extends FlxSprite
 			animation.addByPrefix(frameN[2][i] + 'holdend', frameN[2][i] + ' hold end'); // Tails
 		}
 		defaultWidth = width;
-		setGraphicSize(Std.int(width * noteScale));
+		setGraphicSize(Std.int(width * scaleToUse));
 		updateHitbox();
 	}
 
@@ -347,11 +387,12 @@ class Note extends FlxSprite
 		}
 
 
-		if (!isSustainNote && !inEditor) ///fix note scales
+		//get rid of this shitty system
+		/*if (!isSustainNote && !inEditor) ///fix note scales
 		{
 			var noteTypeShit:Float = 1;
 			if (noteType == "Hurt Note")
-				noteTypeShit = ((9.2 / 1.7) / 1.7);
+				noteTypeShit = ((9.2 / 1.7) / 1.7); //i literally have no idea what any of these numbers mean, i just tried to compare the width and height of the pngs and this ended up working lol
 			if (mustPress)
 			{
 				
@@ -368,6 +409,6 @@ class Note extends FlxSprite
 					setGraphicSize(Std.int(defaultWidth * Note.p2NoteScale * noteTypeShit));
 			}
 
-		}
+		}*/
 	}
 }
