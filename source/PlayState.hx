@@ -117,7 +117,6 @@ class PlayState extends MusicBeatState
 	public static var storyPlaylist:Array<String> = [];
 	public static var storyDifficulty:Int = 1;
 
-<<<<<<< HEAD
 	public static var maniaToChange:Int;
 
 	public static var curP1NoteMania:Int = 0; //so i tried using a mapping system, but it sometimes decided to fuck up the scales, so il try this system again
@@ -139,8 +138,6 @@ class PlayState extends MusicBeatState
 		['LEFT', 'UP', 'RIGHT'],
 	]; 
 
-=======
->>>>>>> parent of b8ca628 (first commit for ek port)
 	public var vocals:FlxSound;
 
 	public var dad:Character;
@@ -307,7 +304,6 @@ class PlayState extends MusicBeatState
 		Conductor.mapBPMChanges(SONG);
 		Conductor.changeBPM(SONG.bpm);
 
-<<<<<<< HEAD
 		mania = SONG.mania;
 		maniaToChange = mania;
 
@@ -321,8 +317,6 @@ class PlayState extends MusicBeatState
 		Note.P1MSwitchMap = [[mania, 0]];
 		Note.P2MSwitchMap = [[mania, 0]];
 
-=======
->>>>>>> parent of b8ca628 (first commit for ek port)
 		#if desktop
 		storyDifficultyText = '' + CoolUtil.difficultyStuff[storyDifficulty][0];
 
